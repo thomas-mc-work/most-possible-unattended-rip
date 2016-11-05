@@ -1,4 +1,4 @@
-# fully automated rip
+# Most possible unattended rip workflow
 
 This is a script that allows you to quickly rip a large collection of audio cd's only with the minimum of manual intervention: __insert cd - remove cd__!
 

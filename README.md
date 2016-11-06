@@ -9,7 +9,8 @@ This project comprises three parts:
 1. A __shell script__:
     - rip a cd with [whipper](https://github.com/JoeLametta/whipper) (fka. morituri) with a very low cpu and storage usage priority
     - fall back to abcde if that fails
-    - finally grab the cover art
+    - automatic atgging and naming
+    - grab the cover art
     - eject the cd
 
 2. (optional) A __udev rule__ to automatically run the shell script when a cd is being inserted.
@@ -53,5 +54,7 @@ All steps within the script are well documented which makes it easy to customize
 - [whipper](https://github.com/JoeLametta/whipper)
 - [good explanations and debug help with udev on arch wiki](https://wiki.archlinux.org/index.php/udev)
 - [beets](http://beets.io/)
+- [abcde best of breed configuration](http://www.andrews-corner.org/linux/abcde/index.html)
+- [let abcde grab album art](http://www.andrews-corner.org/linux/abcde/getalbumart.html)
 
 Any comments, questions or PRs are very welcome!

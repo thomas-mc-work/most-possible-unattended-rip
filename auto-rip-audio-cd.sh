@@ -32,10 +32,9 @@ fi
 echo "# auto rip started" | tee -a "$LOG_FILE"
 
 # PYTHONIOENCODING: workaround for an issue: https://github.com/JoeLametta/whipper/issues/43
-nice -n 19 ionice -c 3  rip cd rip --output-directory="$OUTPUT_DIR" -U true >>"$LOG_FILE" 2>&1
+nice -n 19 ionice -c 3  whipper cd rip --output-directory="$OUTPUT_DIR" -U true >>"$LOG_FILE" 2>&1
 SC=$?
-echo "# auto rip ended" | tee -a "$LOG_FILE"
-echo "## SC: $SC"
+echo "# auto rip finished" | tee -a "$LOG_FILE"
 
 # grab the cover art
 if [ $SC == 0 ]; then

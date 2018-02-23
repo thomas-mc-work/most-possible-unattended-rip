@@ -1,0 +1,7 @@
+library: /dev/null
+
+import:
+    copy: no
+    write: no
+ 
+plugins: fetchart

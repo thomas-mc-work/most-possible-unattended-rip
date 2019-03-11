@@ -3,7 +3,7 @@
 set -o nounset   ## set -u : exit the script if you try to use an uninitialised variable
 
 log_dir=${LOG_DIR:-"$HOME/logs/audio-rip"}
-beets_config=${BEETS_CONFIG:-"$HOME/.config/beets/config.yaml"}
+beets_config=${BEETS_CONFIG:-"$HOME/.config/beets/config.cover.yaml"}
 
 mkdir -p -- "$log_dir"
 log_file="${log_dir}/rip-$(date +%Y-%m-%dT%H-%M-%S).log"

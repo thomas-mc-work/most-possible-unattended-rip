@@ -11,7 +11,7 @@ RUN pip install --quiet beets munkres==1.0.12 \
   && mkdir /home/worker/.config/beets && chown worker: /home/worker/.config/beets \
   && mkdir -p -- "$LOG_DIR" \
   && chown worker: "$LOG_DIR"
-COPY --chown=worker:worker beets.yml /home/worker/.config/beets/config.yaml
+COPY --chown=worker:worker beets.yml /home/worker/.config/beets/config.cover.yaml
 
 # add startup script
 COPY auto-rip-audio-cd.sh /auto-rip-audio-cd.sh

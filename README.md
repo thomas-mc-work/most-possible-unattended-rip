@@ -1,81 +1,109 @@
 # Most Possible Unattended Rip Workflow
 
-This project allows you to quickly rip a large collection of audio CD's only with the minimum of manual intervention: __insert cd - remove cd__
+This project allows you to quickly rip a large collection of audio CD's only with the minimum of manual intervention: 
+__insert cd - remove cd__
 
 ## Structure
 
 This project comprises two components:
 
-1. A shell script for the actual process:
+1. A wrapper shell script for:
 
-    - riping, tagging and naming a CD using [whipper](https://github.com/JoeLametta/whipper)
-    - grab the cover art using [beets](http://beets.io/)
+    - ripping and tagging (using [whipper](https://github.com/whipper-team/whipper))
+    - grab the cover art (using [beets](http://beets.io/))
     - eject the CD
 
-2. (optional) __UDEV Integration__: A UDEV rule to automatically run the shell script when a CD is being inserted.
+2. (optional) A [udev](https://en.wikipedia.org/wiki/Udev) rule to automatically run the shell script when a CD is 
+being inserted
 
-## Installation
+## Installation (Docker based)
 
-First you need to download and extract the project:
+It's the easiest way to run this project using docker. However it's still possible to only use the script 
+`auto-rip-audio-cd.sh`.
 
+### Prepare the working folders
+
+    # feel free do change these values
+    config_dir="$HOME/.config/whipper"
+    log_dir="$PWD/logs"
+    output_dir="$PWD/output"
+    
+    [ ! -d "$config_dir" ] && mkdir -p "$config_dir"
+    [ ! -d "$log_dir" ] && mkdir -p "$log_dir"
+    [ ! -d "$output_dir" ] && mkdir -p "$output_dir"
+
+### Build The Container
+
+    # grab the project
     curl -L https://github.com/thomas-mc-work/most-possible-unattended-rip/archive/master.tar.gz | tar xz
-    cd most-possible-unattended-rip-master
+    
+    # build the container
+    docker build -t tmcw/mpur most-possible-unattended-rip-master
 
-### Docker
+## Usage
 
-At the moment it's required to build the whipper image yourself as the official Docker support is not yet integrated (https://github.com/JoeLametta/whipper/pull/237).
+### Initial drive setup
 
-    git clone https://github.com/thomas-mc-work/whipper.git
-    cd whipper
-    git checkout -b dockerfile
-    docker build -t whipper/whipper .
-    # remove the sources again
-    cd ..
-    rm -rf whipper
-
-#### Build The Image
-
-    docker build -t tmcw/mpur .
-
-#### Run The Container
-
-    [ ! -d config ] && mkdir config
-    [ ! -d logs ] && mkdir logs
-    [ ! -d output ] && mkdir output
+First you're required to create a drive specific config file using whipper:
 
     docker run --rm \
       --device=/dev/cdrom \
-      -v "${PWD}/config":/home/worker/.config/whipper \
-      -v "${PWD}/logs":/logs \
-      -v "${PWD}/output":/output \
+      -v "$config_dir:/home/worker/.config/whipper" \
+      joelametta/whipper drive analyze
+
+This is only required once for each drive.
+
+### Run The Container
+
+    docker run --rm \
+      --device=/dev/cdrom \
+      -v "$config_dir:/home/worker/.config/whipper" \
+      -v "$log_dir:/logs" \
+      -v "$output_dir:/output" \
       tmcw/mpur
 
-### Native
+It's recommended to put this command into a shell script (e.g. `$HOME/bin/mpur.sh`)
 
-    # Mark the script executable
-    chmod +x auto-rip-audio-cd.sh
+## Classical Setup
+
+### Installation
+
+    # prepare the folders by convention
+    mkdir -p "${HOME}/bin" "${HOME}/.config/beets"
+    # Install the script and make it executable
+    curl -Lo "${HOME}/bin/mpur.sh" "https://raw.githubusercontent.com/thomas-mc-work/most-possible-unattended-rip/master/auto-rip-audio-cd.sh"
+    chmod +x "${HOME}/bin/mpur.sh"
     # Install beets via pip
     pip install --user beets
     # Add the beets configuration
-    curl -Lo "${HOME}/.config/beets/config.albums-cover.yaml https://raw.githubusercontent.com/thomas-mc-work/most-possible-unattended-rip/master/beets.yml
+    curl -Lo "${HOME}/.config/beets/config.yaml" "https://raw.githubusercontent.com/thomas-mc-work/most-possible-unattended-rip/master/beets.yml"
 
-Now you can simply execute the script after inserting th audio CD:
+### Usage
 
-    ./auto-rip-audio-cd.sh
+Now you can simply execute the script after inserting the audio CD:
 
-### UDEV Integration
+    $ mpur.sh
 
-Add a UDEV rule to automatically trigger the script:
+#### Parameters
 
-    echo "SUBSYSTEM==\"block\", SUBSYSTEMS==\"scsi\", KERNEL==\"sr?\", ENV{ID_TYPE}==\"cd\", ENV{ID_CDROM}==\"?*\", ENV{ID_CDROM_MEDIA_TRACK_COUNT_AUDIO}==\"?*\", ACTION==\"change\", RUN+=\"/bin/su -lc '<path-to-script>/auto-rip-audio-cd.sh' <username>\"" | sudo tee 80-audio-cd.rules
+- `LOG_DIR`: override the default log files path (`$HOME/logs/audio-rip`)
+- `BEETS_CONFIG`: override the default beets config file path (`$HOME/.config/beets/config.yaml`)
 
-Just be sure to substitude the placeholders `<username>` and `<path-to-script>` by the appropriate values. The script will be run with the according user permissions. This is important to get the correct locale settings in the environment.
+## udev Integration
 
-**Config File To Control The UDEV Automatism**
+Add a udev rule to automatically trigger the script:
+
+    echo "SUBSYSTEM==\"block\", SUBSYSTEMS==\"scsi\", KERNEL==\"sr?\", ENV{ID_TYPE}==\"cd\", ENV{ID_CDROM}==\"?*\", ENV{ID_CDROM_MEDIA_TRACK_COUNT_AUDIO}==\"?*\", ACTION==\"change\", RUN+=\"/bin/su -lc '/home/<username>/bin/mpur.sh' <username>\"" | sudo tee 80-audio-cd.rules
+
+Just be sure to substitute the placeholder `<username>` (or the entire script path) by the appropriate value. The script 
+will be run with the according user permissions. This is important to get the correct locale settings in the environment.
+
+### Config File Extension
 
 Create a config file in your profiles config (`$HOME/.config`) folder:
 
-If you want to use a config file then you're required to create an intermediate shell script that is invoked by the UDEV rule:
+If you want to use a config file then you're required to create an intermediate shell script that is invoked by the udev 
+rule (e.g. `$HOME/bin/mpur-wrapper.sh):
 
     #!/usr/bin/env bash
 
@@ -96,7 +124,7 @@ If you want to use a config file then you're required to create an intermediate 
         exit 0
     fi
 
-    nice -n 19 ionice -c 3 /path/to/auto-rip-audio-cd.sh
+    nice -n 19 ionice -c 3 $HOME/mpur.sh
 
     # reread the config file to include a late shutdown decision
     if [ -f "$CONFIG_FILE" ]; then
@@ -110,7 +138,6 @@ If you want to use a config file then you're required to create an intermediate 
         sudo shutdown -h $SHUTDOWN_TIMEOUT
     fi
 
-
 The config file:
 
     # disable auto ripping?
@@ -123,7 +150,8 @@ The config file:
 These options are available:
 
     - `DISABLED={0,1}`: Disable the script. Good if you like listen to some music CDs without instantly ripping them
-    - `SHUTDOWN={0,1}`: You can choose whether to automatically shutdown the system ofter the rip process has finished. This is good e.g. when going to bed and letting the system finish the last CD by itself. For using this you need to have the permission to shutdown the system via the command line. You can achieve this by inserting `%sudo   ALL = NOPASSWD: /sbin/shutdown` into `/etc/sudoers`.
+    - `SHUTDOWN={0,1}`: You can choose whether to automatically shutdown the system ofter the rip process has finished. 
+      This is good e.g. when going to bed and letting the system finish the last CD by itself. For using this you need to have the permission to shutdown the system via the command line. You can achieve this by inserting `%sudo   ALL = NOPASSWD: /sbin/shutdown` into `/etc/sudoers`.
     - `SHUTDOWN_TIMEOUT=<value>`: Lets you define the shutdown timeout
 
 ## Links
@@ -134,4 +162,4 @@ These options are available:
 
 ---
 
-**Any comments, questions or PRs are very welcome!**
+**Any comments, questions or pull requests are very welcome!**

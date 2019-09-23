@@ -105,7 +105,7 @@ THe native `mpur.sh` can be configured using some environment variables:
 
 Add a udev rule to automatically trigger the script:
 
-    echo "SUBSYSTEM==\"block\", SUBSYSTEMS==\"scsi\", KERNEL==\"sr?\", ENV{ID_TYPE}==\"cd\", ENV{ID_CDROM}==\"?*\", ENV{ID_CDROM_MEDIA_TRACK_COUNT_AUDIO}==\"?*\", ACTION==\"change\", RUN+=\"/bin/su -lc '/home/<username>/bin/mpur.sh' <username>\"" | sudo tee 80-audio-cd.rules
+    echo "SUBSYSTEM==\"block\", SUBSYSTEMS==\"scsi\", KERNEL==\"sr?\", ENV{ID_TYPE}==\"cd\", ENV{ID_CDROM}==\"?*\", ENV{ID_CDROM_MEDIA_TRACK_COUNT_AUDIO}==\"?*\", ACTION==\"change\", RUN+=\"/bin/su -lc '/home/<username>/bin/mpur.sh' <username>\"" | sudo tee /etc/udev/rules.d/80-audio-cd.rules
 
 Just be sure to substitute the placeholder `<username>` (or the entire script path) by the appropriate value. The script 
 will be run with the according user permissions. This is important to get the correct locale settings in the environment.
@@ -118,10 +118,10 @@ If you want to use a config file then you're required to create an intermediate 
 rule:
 
     # Install the script and mark it executable
-    curl -Lo "${HOME}/bin/mpur-wrapper.sh" "https://raw.githubusercontent.com/thomas-mc-work/most-possible-unattended-rip/master/mpur-wrapper.sh"
+    curl -Lo "${HOME}/bin/mpur-wrapper.sh" "https://raw.githubusercontent.com/thomas-mc-work/most-possible-unattended-rip/master/mpur_wrapper.sh"
     chmod +x "${HOME}/bin/mpur-wrapper.sh"
 
-The config file:
+The config file (`~/.config/auto-rip.cfg`):
 
     # DISABLED={0,1}: Disable the script. Good if you like listen to some music CDs without instantly ripping them
     DISABLED=0

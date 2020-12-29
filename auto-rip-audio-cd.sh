@@ -23,7 +23,8 @@ sc_whipper=$?
 if [ $sc_whipper = 0 ]; then
     # example line:
     # INFO:whipper.image.cue:parsing .cue file u'unknown/Unknown Artist - m3JTAxsMcVKGGAiW6CKcaYJ5TG8-/Unknown Artist - m3JTAxsMcVKGGAiW6CKcaYJ5TG8-.cue'
-    pattern="INFO:whipper\.image\.cue:parsing \.cue file u'.*.cue'"
+    # INFO:whipper.image.cue:parsing .cue file '/Audio-work/whipper/album/Will Smith - Big Willie Style (Several different stickers on outside of jewel case is common.)/Will Smith - Big Willie Style (Several different stickers on outside of jewel case is common.).cue'
+    pattern="INFO:whipper\.image\.cue:parsing \.cue file '.*.cue'"
 
     # replace the carriage returns with proper line breaks and search for the output pattern
     if cue_file_line=$(tr '\015' "\n" < "$log_file" | grep -E "$pattern"); then
